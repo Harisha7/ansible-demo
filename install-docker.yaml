@@ -1,0 +1,70 @@
+---
+- name: Install Docker and Docker Compose
+  hosts: mytestserver
+  remote_user: root
+  become: true
+  vars:
+    ansible_become_pass: "{{ ansible_ssh_pass }}"
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - epel-release
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker repository
+      command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install Docker
+      ansible.builtin.yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ansible_user}}"
+        group: docker
+
+    - name: Download docker-compose
+      get_url:
+        url : https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
+        dest: ~/docker-compose
+        mode: '+x'
+
+    - name: Check docker-compose exists
+      stat: path=~/docker-compose
+      register: docker_compose
+
+    - name: Move docker-compose to /usr/local/bin/docker-compose
+      command: mv ~/docker-compose /usr/local/bin/docker-compose
+      when: docker_compose.stat.exists
+
+    - name: Install docker-compose from official github repo
+      get_url:
+        url : https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+
+    - name: Make docker compose executable
+      command: chmod +x /usr/local/bin/docker-compose
+
+    - name: Copy Docker Compose files
+      copy:
+        src: /home/harisha/ansible_test/docker-compose.yaml
+        dest: /home/{{ user_name }}/docker-compose.yaml
+
+    - name: Start Docker Compose
+      command: docker compose up  

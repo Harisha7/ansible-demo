@@ -1,0 +1,30 @@
+---
+- name: Config testserver
+  hosts: mytestserver
+  remote_user: root
+  become: true
+  vars:
+    ansible_become_pass: "{{ ansible_ssh_pass }}"
+
+  tasks:
+    - name: Update software
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+
+    - name: Install vim
+      ansible.builtin.yum:
+        name: vim
+        state: present
+
+    - name: Install a list of packages
+      ansible.builtin.yum:
+        name:
+          - python3
+          - libselinux-python
+          - wget
+          - net-tools
+          - util-linux
+          - git
+        state: present
+
