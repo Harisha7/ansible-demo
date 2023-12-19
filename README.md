@@ -1,1 +1,1 @@
-To create a Docker image with a hello.sh script that runs forever and prints "Hello, World!" every 5 seconds,
+To create a Docker image with a hello.sh script that runs forever and prints "Hello, World!" every 5 seconds, and deploying a docker container that generating and visualizing messages in Grafana/Loki.
